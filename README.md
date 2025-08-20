@@ -44,6 +44,15 @@ The current system has a `Status` and a `Posted` header. To make this work seaml
 
 The front end expects the back end to provide data via the following API endpoints. Please make sure the data returned from the backend's API matches the front end's expected data format.
 
+## **5. Issue**
+This update addresses two critical issues with the scheduled job queue functionality for Telegram Posting. The original implementation had a bug where jobs were not correctly managed upon removal, leading to an inconsistent state or multiple jobs being posted in one hour thus creating duplicate posts.
+
+The issues were:
+Duplicate Job Entries: It was possible to add the same job to the Telegram posting queue multiple times.
+Incorrect Job Removal: When a job was removed from the queue, it did not return to the "Jobs To Be Posted" list. Instead, it was effectively lost from the active job pool.
+
+
+
 * `GET /jobs`: Fetches a list of jobs based on the current filter, search query, pagination, and sorting. The front end will send these parameters in the request.
 * `POST /jobs/{job_id}/post_to_telegram`: Initiates the process of posting a specific job to Telegram.
 * `POST /jobs/{job_id}/mark_as_posted`: Updates the job's status to `Posted` in your database (Excel file).
