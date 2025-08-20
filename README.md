@@ -10,8 +10,8 @@ The front end is built with a combination of HTML, CSS, and Vue.js. It features 
 
 The primary goal for the next phase is to connect this front end to the back end. The back end will be responsible for:
 
-* Retrieving job data from the provided Excel file.
-* Serving the data to the front end via a REST API.
+* Retrieving job data from the SharePoint Excel file.
+* Serving the data to the front end.
 * Handling the scheduling and posting of jobs to Telegram.
 
 ---
@@ -25,7 +25,7 @@ The front end is configured to work with the following columns from the Excel fi
 | **`Name of Company/Organization`** | The company that is hiring. |
 | **`Position`** | The title of the job. |
 | **`City`** | The location of the job. |
-| **`Arabic`** | The Arabic translation of the job title. |
+| **`Kurdish`** | The Kurdish translation of the job title. |
 | **`Posted on Social Media`** | A flag (`Yes` or `No`) indicating if the job has been posted. |
 | **`Design completed?`** | A flag indicating if the design for the post is ready. |
 
