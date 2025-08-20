@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Posting Board</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Job Posting Board</h1>
+        </header>
+
+        <main>
+            <div class="controls">
+                <button @click="toggleJobFilter">{{ filterButtonText }}</button>
+                <button @click="fetchScheduledJobs">View Scheduled Jobs</button>
+                <button @click="simulateDailyReport">Simulate Daily Report</button>
+                <div class="search-container">
+                    <input type="text" v-model="searchQuery" placeholder="Search by Company Name...">
+                </div>
+                <button @click="toggleSortOrder">{{ sortButtonText }}</button>
+            </div>
+            
+            <h2 class="section-title">{{ currentSectionTitle }}</h2>
+            
+            <div class="table-header">
+                <div class="table-cell">Title</div>
+                <div class="table-cell">Company</div>
+                <div class="table-cell">Location</div>
+                <div class="table-cell" v-if="!isScheduledView">Actions</div>
+                <div class="table-cell" v-if="isScheduledView">Scheduled Time</div>
+                <div class="table-cell" v-if="isScheduledView">Actions</div>
+            </div>
+            
+            <div id="job-listings">
+                <div v-for="job in filteredJobs" :key="job.id" class="table-row">
+                    <div class="table-cell">{{ job.title }}</div>
+                    <div class="table-cell">{{ job.company }}</div>
+                    <div class="table-cell">{{ job.location }}</div>
+                    
+                    <div class="table-cell job-actions" v-if="!isScheduledView">
+                        <button class="action-btn" @click="copyTemplate(job)">Copy</button>
+                        <button class="action-btn" @click="postToTelegram(job)">Post</button>
+                        <button class="action-btn" @click="archiveJob(job)">Archive</button>
+                    </div>
+
+                    <div class="table-cell" v-if="isScheduledView">{{ job.scheduled_time }}</div>
+                    <div class="table-cell job-actions" v-if="isScheduledView">
+                        <button class="action-btn" @click="removeScheduledJob(job.id)">Remove</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pagination-controls" v-if="!isScheduledView">
+                <button @click="previousPage" :disabled="currentPage === 1">Previous</button>
+                <span>Page {{ currentPage }} of {{ totalPages }}</span>
+                <button @click="nextPage" :disabled="currentPage === totalPages">Next</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

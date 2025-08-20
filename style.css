@@ -1,0 +1,200 @@
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #f0f4f7;
+    --accent-color: #3cb371;
+    --danger-color: #e53935;
+    --text-color: #333;
+    --subtle-text-color: #666;
+    --background-color: #ffffff;
+    --border-color: #e0e6ed;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem 0;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+main {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    background-color: var(--background-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    gap: 0.75rem;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+button:hover {
+    background-color: #3a7bd5;
+    transform: translateY(-1px);
+}
+
+button:active {
+    background-color: #2c5ba0;
+}
+
+button:disabled {
+    background-color: #b0c4de;
+    cursor: not-allowed;
+}
+
+.search-container {
+    flex-grow: 1;
+    margin-left: 1rem;
+    display: flex;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-container input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 1.5rem 1.5rem 1rem;
+    color: var(--text-color);
+}
+
+/* Table Design */
+.table-header, .table-row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 2fr;
+    gap: 1rem;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.table-header {
+    font-weight: 600;
+    color: var(--subtle-text-color);
+    background-color: var(--secondary-color);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.table-row {
+    transition: background-color 0.2s;
+}
+
+.table-row:hover {
+    background-color: #f9fafb;
+}
+
+.table-cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.job-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.job-actions .action-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    background-color: #f0f4f7;
+    color: var(--primary-color);
+    border: 1px solid var(--border-color);
+    font-weight: 500;
+}
+
+.job-actions .action-btn:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Specific buttons */
+.job-actions .action-btn:nth-child(2) {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+.job-actions .action-btn:nth-child(2):hover {
+    background-color: #32a061;
+}
+
+.job-actions .action-btn:last-child {
+    background-color: var(--danger-color);
+    color: white;
+    border-color: var(--danger-color);
+}
+.job-actions .action-btn:last-child:hover {
+    background-color: #d32f2f;
+}
+
+/* Special styles for scheduled view */
+.table-header[style*="grid-template-columns"] {
+    grid-template-columns: 2fr 1.5fr 1fr 1.5fr 1.5fr;
+}
+.table-row[style*="grid-template-columns"] {
+    grid-template-columns: 2fr 1.5fr 1fr 1.5fr 1.5fr;
+}
+
+.table-header .table-cell:nth-child(4) {
+    width: 1.5fr;
+}
+.table-header .table-cell:nth-child(5) {
+    width: 1.5fr;
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem 0;
+    gap: 1rem;
+}
+
+.pagination-controls span {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--subtle-text-color);
+}
