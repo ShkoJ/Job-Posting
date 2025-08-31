@@ -36,8 +36,9 @@ The front end is configured to work with the following columns from the Excel fi
 
 The current system has a `Status` and a `Posted` header. To make this work seamlessly with the existing front end, we need to add two new headers to the Excel sheet that you'll manage in the backend.
 
-1.  **`Posted` (Column G):** This column should be a simple `Yes` or `No` value. The front end uses this to determine which jobs to display when the user toggles the filter.
-2.  **`Arabic` (New column):** This column should be added to contain the Arabic translation of the job title. The front end will use this to generate the correct message template for the Telegram post.
+1.  **`Arabic` (New column):** This column should be added to contain the Arabic translation of the job title. The front end will use this to generate the correct message template for the Telegram post.
+2.  **`Link` (New Column):** This column should be Have the link of the job vacancy and act as a trigger, so when there's data in it the system should retrive that row of data.
+
 
 ---
 
