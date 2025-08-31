@@ -13,6 +13,7 @@ The primary goal for the next phase is to connect this front end to the back end
 * Retrieving job data from the SharePoint Excel file.
 * Serving the data to the front end.
 * Handling the scheduling and posting of jobs to Telegram.
+* After posting or archiving a job, it should go to the same excel file ut a different sheet (The marketing sheet).
 
 ---
 
