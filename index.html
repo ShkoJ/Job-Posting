@@ -3,64 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Posting Board</title>
+    <title>Job Posting Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app">
         <header>
-            <h1>Job Posting Board</h1>
+            <h1 class="header-title">JOBS.KRD Posting Dashboard</h1>
         </header>
 
         <main>
-            <div class="controls">
-                <button @click="toggleJobFilter">{{ filterButtonText }}</button>
-                <button @click="fetchScheduledJobs">View Scheduled Jobs</button>
-                <button @click="simulateDailyReport">Simulate Daily Report</button>
-                <div class="search-container">
-                    <input type="text" v-model="searchQuery" placeholder="Search by Company Name...">
+            <div class="controls-container">
+                <div class="filter-group">
+                    <button :class="{ 'active-btn': !isScheduledView && showToBePostedOnly }" @click="toggleJobFilter(true)">
+                        <i class="fas fa-list-ul"></i> Jobs To Be Posted
+                    </button>
+                    <button :class="{ 'active-btn': !isScheduledView && !showToBePostedOnly }" @click="toggleJobFilter(false)">
+                        <i class="fas fa-archive"></i> Posted Jobs
+                    </button>
                 </div>
-                <button @click="toggleSortOrder">{{ sortButtonText }}</button>
+                
+                <div class="main-actions">
+                    <button class="view-scheduled-btn" @click="fetchScheduledJobs">
+                        <i class="far fa-clock"></i> View Scheduled Queue
+                    </button>
+                    <button class="report-btn" @click="simulateDailyReport">
+                        <i class="fas fa-envelope"></i> Daily Report
+                    </button>
+                </div>
+
+                <div class="search-sort-group">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" v-model="searchQuery" placeholder="Search by Company Name...">
+                    </div>
+                    <button class="sort-btn" @click="toggleSortOrder">
+                        <i class="fas" :class="sortOrder === 'asc' ? 'fa-sort-amount-down-alt' : 'fa-sort-amount-up-alt'"></i> {{ sortButtonText }}
+                    </button>
+                </div>
             </div>
             
             <h2 class="section-title">{{ currentSectionTitle }}</h2>
             
-            <div class="table-header">
-                <div class="table-cell">Title</div>
-                <div class="table-cell">Company</div>
-                <div class="table-cell">Location</div>
-                <div class="table-cell" v-if="!isScheduledView">Actions</div>
-                <div class="table-cell" v-if="isScheduledView">Scheduled Time</div>
-                <div class="table-cell" v-if="isScheduledView">Actions</div>
-            </div>
-            
-            <div id="job-listings">
-                <div v-for="job in filteredJobs" :key="job.id" class="table-row">
-                    <div class="table-cell">{{ job.title }}</div>
-                    <div class="table-cell">{{ job.company }}</div>
-                    <div class="table-cell">{{ job.location }}</div>
-                    
-                    <div class="table-cell job-actions" v-if="!isScheduledView">
-                        <button class="action-btn" @click="copyTemplate(job)">Copy</button>
-                        <button class="action-btn" @click="postToTelegram(job)">Post</button>
-                        <button class="action-btn" @click="archiveJob(job)">Archive</button>
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-cell">Title</div>
+                    <div class="table-cell">Company</div>
+                    <div class="table-cell">Location</div>
+                    <div class="table-cell" v-if="isScheduledView">Scheduled Time</div>
+                    <div class="table-cell">Actions</div>
+                </div>
+                
+                <div id="job-listings">
+                    <div v-if="jobs.length === 0" class="no-jobs-message">
+                        No jobs found. Try adjusting your filters.
                     </div>
-
-                    <div class="table-cell" v-if="isScheduledView">{{ job.scheduled_time }}</div>
-                    <div class="table-cell job-actions" v-if="isScheduledView">
-                        <button class="action-btn" @click="removeScheduledJob(job.id)">Remove</button>
+                    <div v-for="job in filteredJobs" :key="job.id" class="table-row">
+                        <div class="table-cell">{{ job.title }}</div>
+                        <div class="table-cell">{{ job.company }}</div>
+                        <div class="table-cell">{{ job.location }}</div>
+                        
+                        <div class="table-cell" v-if="isScheduledView">
+                            {{ formatScheduledTime(job.scheduled_time) }}
+                        </div>
+                        
+                        <div class="table-cell job-actions">
+                            <button class="action-btn copy-btn" @click="copyTemplate(job)" title="Copy Template">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="action-btn post-btn" v-if="!isScheduledView" @click="postToTelegram(job)" title="Post to Telegram">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                            <button class="action-btn archive-btn" v-if="!isScheduledView" @click="archiveJob(job)" title="Archive Job">
+                                <i class="fas fa-archive"></i>
+                            </button>
+                            <button class="action-btn remove-btn" v-if="isScheduledView" @click="removeScheduledJob(job.id)" title="Remove from Queue">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="pagination-controls" v-if="!isScheduledView">
-                <button @click="previousPage" :disabled="currentPage === 1">Previous</button>
-                <span>Page {{ currentPage }} of {{ totalPages }}</span>
-                <button @click="nextPage" :disabled="currentPage === totalPages">Next</button>
+            <div class="pagination-controls" v-if="!isScheduledView && totalPages > 1">
+                <button @click="previousPage" :disabled="currentPage === 1">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <span class="pagination-info">Page {{ currentPage }} of {{ totalPages }}</span>
+                <button @click="nextPage" :disabled="currentPage === totalPages">
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
             </div>
         </main>
     </div>
-
+    <div id="toast-container"></div>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="script.js"></script>
 </body>
