@@ -13,26 +13,25 @@ const app = Vue.createApp({
     },
     computed: {
         filteredJobs() {
+            // The API handles filtering, so this is just a direct return
             return this.jobs;
         },
-        filterButtonText() {
-            return this.showToBePostedOnly ? 'Show Posted Jobs' : 'Show To be Posted Jobs';
+        sortButtonText() {
+            return this.sortOrder === 'asc' ? 'Sort by Oldest' : 'Sort by Newest';
         },
         currentSectionTitle() {
             if (this.isScheduledView) {
-                return 'Scheduled Jobs Queue';
+                return 'Scheduled Jobs Queue ⏰';
             }
             return this.showToBePostedOnly ? 'Jobs To Be Posted' : 'Posted Jobs (Archived)';
         },
         totalPages() {
             return Math.ceil(this.totalJobs / this.pageSize);
-        },
-        sortButtonText() {
-            return this.sortOrder === 'asc' ? 'Sort by Newest' : 'Sort by Oldest';
         }
     },
     watch: {
         searchQuery: function(newVal, oldVal) {
+            this.currentPage = 1;
             this.debouncedFetchJobs();
         }
     },
@@ -50,10 +49,10 @@ const app = Vue.createApp({
         },
         async fetchJobs() {
             try {
+                this.isScheduledView = false;
                 const status = this.showToBePostedOnly ? 'active' : 'archived';
                 const skip = (this.currentPage - 1) * this.pageSize;
                 const limit = this.pageSize;
-                
                 const response = await fetch(`http://localhost:8000/jobs?status=${status}&skip=${skip}&limit=${limit}&order=${this.sortOrder}&search=${this.searchQuery}`);
                 const countResponse = await fetch(`http://localhost:8000/jobs/count?status=${status}&search=${this.searchQuery}`);
 
@@ -64,8 +63,11 @@ const app = Vue.createApp({
                 this.jobs = await response.json();
                 const countData = await countResponse.json();
                 this.totalJobs = countData.total;
+                document.querySelector('.table-header').style.gridTemplateColumns = '2fr 1.5fr 1fr 2fr';
+                document.querySelectorAll('.table-row').forEach(el => el.style.gridTemplateColumns = '2fr 1.5fr 1fr 2fr');
 
             } catch (error) {
+                this.jobs = []; // Clear jobs on error
                 console.error("Error fetching jobs:", error);
             }
         },
@@ -75,33 +77,30 @@ const app = Vue.createApp({
                 if (!response.ok) {
                     throw new Error('Failed to fetch scheduled jobs.');
                 }
-                this.jobs = await response.json();
+                const data = await response.json();
+                this.jobs = data;
                 this.totalJobs = this.jobs.length;
                 this.isScheduledView = true;
                 this.searchQuery = '';
+                // Adjusting the grid layout for the scheduled view
+                document.querySelector('.table-header').style.gridTemplateColumns = '2fr 1.5fr 1fr 1.5fr 2fr';
+                document.querySelectorAll('.table-row').forEach(el => el.style.gridTemplateColumns = '2fr 1.5fr 1fr 1.5fr 2fr');
+
             } catch (error) {
+                this.jobs = [];
                 console.error('Error fetching scheduled jobs:', error);
             }
         },
-        toggleJobFilter() {
-            this.showToBePostedOnly = !this.showToBePostedOnly;
+        toggleJobFilter(showToBePosted) {
+            this.showToBePostedOnly = showToBePosted;
             this.currentPage = 1; 
             this.isScheduledView = false;
             this.fetchJobs();
         },
         toggleSortOrder() {
-            if (this.isScheduledView) {
-                // Sort scheduled jobs by time
-                this.jobs.sort((a, b) => {
-                    const dateA = new Date(a.scheduled_time);
-                    const dateB = new Date(b.scheduled_time);
-                    return this.sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-                });
-            } else {
-                this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
-                this.currentPage = 1; 
-                this.fetchJobs();
-            }
+            this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+            this.currentPage = 1; 
+            this.fetchJobs();
         },
         async postToTelegram(job) {
             try {
@@ -114,21 +113,21 @@ const app = Vue.createApp({
                     throw new Error(errorData.detail || 'Failed to schedule job for Telegram.');
                 }
                 const data = await response.json();
-                alert(`Job '${job.title}' scheduled for Telegram at ${data.scheduled_time}.`);
+                this.showToast(`Job '${job.title}' scheduled for Telegram at ${data.scheduled_time}.`);
                 
+                // Immediately remove job from the list to update the UI
                 const jobIndex = this.jobs.findIndex(j => j.id === job.id);
                 if (jobIndex !== -1) {
                     this.jobs.splice(jobIndex, 1);
                     this.totalJobs--;
                 }
-
-                this.fetchJobs();
             } catch (error) {
                 console.error('Error scheduling job for Telegram:', error);
-                alert(`Error: ${error.message}`);
+                this.showToast(`Error: ${error.message}`, 'error');
             }
         },
         async copyTemplate(job) {
+            // Your existing copy logic
             const location_tag = job.location.replace(' ', '');
             const hashtags = `\u200f#\u200f${location_tag} #\u200fHiring #\u200fVacancy #\u200fJobsIn${location_tag}`;
 
@@ -151,7 +150,7 @@ const app = Vue.createApp({
             if (template) {
                 try {
                     await navigator.clipboard.writeText(template);
-                    alert('Template copied to clipboard!');
+                    this.showToast('Template copied to clipboard!', 'success');
                     await this.markJobAsPosted(job.id);
                 } catch(err) {
                     console.error('Failed to copy text: ', err);
@@ -159,28 +158,16 @@ const app = Vue.createApp({
             }
         },
         async archiveJob(job) {
-            await this.toggleJobStatus(job.id, 'archived');
-        },
-        async toggleJobStatus(jobId, newStatus) {
             try {
-                const job = this.jobs.find(j => j.id === jobId);
-                if (!job) return;
-                
-                if (newStatus === 'archived') {
-                    await this.markJobAsPosted(jobId);
-                    alert(`Job '${job.title}' has been moved to Posted.`);
-
-                    const jobIndex = this.jobs.findIndex(j => j.id === jobId);
-                    if (jobIndex !== -1) {
-                         this.jobs.splice(jobIndex, 1);
-                         this.totalJobs--;
-                    }
-                } else {
-                    alert(`Job '${job.title}' has been moved to Not Posted.`);
+                await this.markJobAsPosted(job.id);
+                this.showToast(`Job '${job.title}' has been moved to Posted.`, 'info');
+                const jobIndex = this.jobs.findIndex(j => j.id === job.id);
+                if (jobIndex !== -1) {
+                    this.jobs.splice(jobIndex, 1);
+                    this.totalJobs--;
                 }
-                this.fetchJobs(); 
             } catch (error) {
-                console.error("Error toggling job status:", error);
+                this.showToast(`Error archiving job: ${error.message}`, 'error');
             }
         },
         async markJobAsPosted(jobId) {
@@ -194,6 +181,7 @@ const app = Vue.createApp({
                 }
             } catch (error) {
                 console.error('Error marking job as posted:', error);
+                throw error; // Re-throw to be caught by the caller
             }
         },
         async removeScheduledJob(jobId) {
@@ -202,13 +190,14 @@ const app = Vue.createApp({
                     method: 'DELETE'
                 });
                 if (!response.ok) {
-                    throw new Error('Failed to remove job from queue.');
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to remove job from queue.');
                 }
-                alert('Job removed from queue and returned to active list.');
+                this.showToast('Job removed from queue and returned to active list.', 'success');
                 this.fetchScheduledJobs(); // Refresh the list
             } catch (error) {
                 console.error('Error removing job from queue:', error);
-                alert(`Error: ${error.message}`);
+                this.showToast(`Error: ${error.message}`, 'error');
             }
         },
         async simulateDailyReport() {
@@ -217,7 +206,7 @@ const app = Vue.createApp({
                     method: 'POST'
                 });
                 const data = await response.json();
-                alert(data.report || data.message);
+                this.showToast(data.message);
             } catch (error) {
                 console.error('Error simulating daily report:', error);
             }
@@ -233,6 +222,29 @@ const app = Vue.createApp({
                 this.currentPage--;
                 this.fetchJobs();
             }
+        },
+        formatScheduledTime(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString(); // Use the browser's locale for a friendly format
+        },
+        showToast(message, type = 'default') {
+            const toastContainer = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            
+            toastContainer.appendChild(toast);
+            
+            // Trigger the animation
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            // Hide the toast after 4 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400); // Remove element after transition
+            }, 4000);
         }
     },
     mounted() {
