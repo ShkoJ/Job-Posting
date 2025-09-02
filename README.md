@@ -32,12 +32,11 @@ The front end is configured to work with the following columns from the Excel fi
 
 ---
 
-## **3. New Headers to Add**
+## **3. Adding New Rows to the Marketing Tab**
+Whenever a job is archived, posted, or otherwise processed by the Marketing team on the web app, the second tab of the Excel sheet (Marketing Tab) should be automatically updated.
 
-The current system has a `Status` and a `Posted` header. To make this work seamlessly with the existing front end, we need to add two new headers to the Excel sheet that you'll manage in the backend.
+Each new row in this tab should capture the necessary data, with all designated fields filled appropriately according to the job’s status or activity. Essentially, any new activity in the system should result in a corresponding row with complete and accurate values in the Marketing Tab.
 
-1.  **`Arabic` (New column):** This column should be added to contain the Arabic translation of the job title. The front end will use this to generate the correct message template for the Telegram post.
-2.  **`Link` (New Column):** This column should be Have the link of the job vacancy and act as a trigger, so when there's data in it the system should retrive that row of data.
 
 
 ---
